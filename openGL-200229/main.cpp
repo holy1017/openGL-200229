@@ -1,35 +1,70 @@
 #include <gl/glut.h>
+#include <gl\gl.h>
+#include <gl\glu.h>
+#include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
+
+int main(int argc, char** argv);
 
 void DoDisplay();
+void DoIdle();
+
 void ChgWinSize(int w, int h);
-void KeyDown(unsigned char key, int x, int y);
-void MouseDown(int button, int state, int x, int y);
+
 void KeyUp(unsigned char key, int x, int y);
+void KeyDown(unsigned char key, int x, int y);
 void KeySpecialUp(int key, int x, int y);
 void KeySpecialDown(int key, int x, int y);
+void MouseDown(int button, int state, int x, int y);
+
 void DoMenu(int value);
+
 void renderScene1();
 void renderScene2();
 void renderScene3();
-void DoIdle();
+void renderScene4();
+
+void initMain() ;
+
+void initScene();
+void initScene1();
+void initScene2();
+void initScene3();
+void initScene4();
+
+void KeySpecialDown3(int key, int x, int y);
+void KeySpecialDown4(int key, int x, int y);
+
+GLuint createDL();
+void orientMe(float ang);
+void moveMeFlat(int direction);
+
+void Lock();
+
 
 GLfloat f_x = 0.0, f_y = 0.0;
-GLint   s_mod = '3'  ;
+GLint   s_mod = '4'  ;
 GLint   i_x=0 , i_y = 0 ;
 GLint   w_w=300 , w_h = 400 ;
 
 GLfloat Alpha = 0.1f;
 GLenum Src = GL_SRC_ALPHA;
 GLenum Dest = GL_ONE_MINUS_SRC_ALPHA;
-float angle = 0.0;
 float red = 1.0, blue = 1.0, green = 1.0;
 
 int k_mod;
 
+static float angle = 0.0, ratio;
+static GLdouble x = 0.0f, y = 1.75f, z = 5.0f;
+static GLdouble lx = 0.0f, ly = 0.0f, lz = -1.0f;
+static GLint snowman_display_list;
+
+
 int main(int argc, char** argv)
 {
     glutInit(&argc, argv);              // 초기화
+
 
     //glutInitDisplayMode();
     //glutInitDisplayMode(GLUT_RGB | GLUT_SINGLE | GLUT DEPTH);
@@ -51,11 +86,10 @@ int main(int argc, char** argv)
     glutCreateWindow("OpenGL");         // 윈도우 만들기.
     glutInitWindowPosition(100, 100);   // 화면 초기 위치
     glutInitWindowSize(w_w, w_h);       // 화면 크기
-    glutReshapeFunc(ChgWinSize);     // 윈도우 크기 변경시 대응
 
-    glutDisplayFunc(DoDisplay);         // 화면표시함수.
-    glutIdleFunc(DoIdle);          //휴면(idle)시간에 호출될 함수를 설정한다.
-
+    initMain();
+    initScene();
+    
     glutKeyboardFunc(KeyDown);          // 키보드 입력 함수.
     glutKeyboardUpFunc(KeyUp);          //
 
@@ -63,18 +97,38 @@ int main(int argc, char** argv)
     glutSpecialUpFunc(KeySpecialUp);       //
     glutMouseFunc(MouseDown);           //
 
+    glutDisplayFunc(DoDisplay);         // 화면표시함수.
+    glutIdleFunc(DoIdle);          //휴면(idle)시간에 호출될 함수를 설정한다.
+    
+
     glutCreateMenu(DoMenu);             // 메뉴 생성 함수
     glutAddMenuEntry("renderScene1", 1);      // 메뉴 엔트리 1
     glutAddMenuEntry("renderScene2", 2);  // 메뉴 엔트리 2
     glutAttachMenu(GLUT_RIGHT_BUTTON);  // 오른쪽 버튼을 누르면 메뉴생성
 
-
     glEnable(GL_DEPTH_TEST);   //깊이 검사가 가능하도록 설정한다.
+
+    glutReshapeFunc(ChgWinSize);     // 윈도우 크기 변경시 대응
 
     glutMainLoop();                     // 메인루프
 
     return 0;
 }
+//================================================================
+
+void initMain() {
+    snowman_display_list = createDL();
+}
+
+void Lock()
+{
+    glLoadIdentity();
+    gluLookAt(x, y, z,
+        x + lx, y + ly, z + lz,
+        0.0f, 1.0f, 0.0f);
+    printf("%lf\t%lf\t%lf\t%lf\t%lf\t%lf\n", x, y, z, lx, ly, lz);
+}
+
 //================================================================
 void KeyDown(unsigned char key, int x, int y) // q, a를 눌렀을 때 알파값 변경
 {
@@ -84,7 +138,9 @@ void KeyDown(unsigned char key, int x, int y) // q, a를 눌렀을 때 알파값 변경
     case '1':
     case '2':
     case '3':
+    case '4':
         s_mod = key;
+        initScene();
         printf("mod : %d \n", s_mod);
         break;
     case 'a' :
@@ -132,25 +188,16 @@ void KeySpecialDown(int key, int x, int y)
     //    GLUT_KEY_PAGE_DOWN    Page Down 키
     //    GLUT_KEY_HOME        Home 키
     //    GLUT_KEY_END        End 키
-    //    GLUT_KEY_INSERT        Insert 키
-    switch (key)
+    //    GLUT_KEY_INSERT        Insert 키    
+    switch (s_mod)
     {
-    case GLUT_KEY_F1:        
-        if (k_mod == (GLUT_ACTIVE_CTRL | GLUT_ACTIVE_ALT))
-        {
-            red = 1.0; green = 0.0; blue = 0.0;
-            printf("GLUT_ACTIVE \n");
-        }
+    case '3':
+        KeySpecialDown3(key, x, y);
         break;
-    case GLUT_KEY_F2:
-        red = 0.0;
-        green = 1.0;
-        blue = 0.0; 
+    case '4':
+        KeySpecialDown4(key, x, y);
         break;
-    case GLUT_KEY_F3:
-        red = 0.0;
-        green = 0.0;
-        blue = 1.0; 
+    default:
         break;
     }
     glutPostRedisplay(); // 화면 재생성
@@ -184,6 +231,9 @@ void DoDisplay()
     case '3':
         renderScene3();
         break;
+    case '4':        
+        renderScene4();
+        break;
     case 'd':
         
         break;
@@ -203,6 +253,9 @@ void DoIdle()
         break;
     case '3':
         //renderScene3();
+        break;
+    case '4':
+        renderScene4();
         break;
     case 'd':
 
@@ -224,7 +277,39 @@ void DoMenu(int value)
     }
     glutPostRedisplay(); // 화면 재생성
 }
+
 //================================================================
+
+void initScene()
+{
+    printf("initScene : %d \n", s_mod);
+    switch (s_mod) {
+    case '1':
+        initScene1();
+        break;
+    case '2':
+        initScene2();        
+        break;
+    case '3':
+        initScene3();        
+        break;
+    case '4':
+        initScene4();        
+        break;
+    }
+}
+
+//================================================================
+
+void initScene1()
+{
+    angle = 0.0, ratio;
+    x = 0.0f, y = 0.0f, z = 5.0f;
+    lx = 0.0f, ly = 0.0f, lz = -1.0f - z;
+    //glLoadIdentity();
+    //gluLookAt(0.0, 0.0, 5.0, 0.0, 0.0, -1.0, 0.0f, 1.0f, 0.0f);
+    Lock();
+}
 
 void renderScene1()
 {
@@ -244,6 +329,18 @@ void renderScene1()
     glPopMatrix();
     glutSwapBuffers();
 }
+//================================================================
+
+void initScene2()
+{
+    angle = 0.0, ratio;
+    x = 0.0f, y = 0.0f, z = 5.0f;
+    lx = 0.0f, ly = 0.0f, lz = -1.0f - z;
+    //glLoadIdentity();
+    //gluLookAt(0.0, 0.0, 5.0, 0.0, 0.0, -1.0, 0.0f, 1.0f, 0.0f);
+    Lock();
+}
+
 void renderScene2()
 {
     printf("renderScene2\n");
@@ -275,6 +372,43 @@ void renderScene2()
     angle++;
 }
 
+//================================================================
+
+void KeySpecialDown3(int key, int x, int y) {
+    switch (key)
+    {
+    case GLUT_KEY_F1:
+        if (k_mod == (GLUT_ACTIVE_CTRL | GLUT_ACTIVE_ALT))
+        {
+            red = 1.0; green = 0.0; blue = 0.0;
+            printf("GLUT_ACTIVE \n");
+        }
+        break;
+    case GLUT_KEY_F2:
+        red = 0.0;
+        green = 1.0;
+        blue = 0.0;
+        break;
+    case GLUT_KEY_F3:
+        red = 0.0;
+        green = 0.0;
+        blue = 1.0;
+        break;
+    }
+}
+
+
+void initScene3()
+{
+    angle = 0.0, ratio;
+    x = 0.0f, y = 0.0f, z = 5.0f;
+    lx = 0.0f, ly = 0.0f, lz = -1.0f - z ;
+    //glLoadIdentity();
+    //gluLookAt(0.0, 0.0, 5.0, 0.0, 0.0, -1.0, 0.0f, 1.0f, 0.0f);
+    //printf("%lf\t%lf\t%lf\t%lf\t%lf\t%lf\n", x, y, z, lx, ly, lz);
+    Lock();
+}
+
 void renderScene3(void)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -299,15 +433,17 @@ void renderScene3(void)
 void ChgWinSize(int w, int h)
 {
     printf("changeSize : %d , %d \n", w, h);
-    w_h = h;
-    w_w = w;
 
     //https://skyfe79.gitbooks.io/glut-tutorials/chapter3.html
     //창이 아주 작을 때, 0 으로 나누는 것을 예방합니다.
     if (h == 0)
         h = 1;
-    float ratio = 1.0 * w / h;
 
+    w_h = h;
+    w_w = w;
+
+    ratio = 1.0f * w / h;
+    
     //좌표계를 수정하기 전에 초기화합니다.
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -318,6 +454,163 @@ void ChgWinSize(int w, int h)
     //투시값을 설정합니다.
     gluPerspective(45, ratio, 1, 1000);
     glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    gluLookAt(0.0, 0.0, 5.0, 0.0, 0.0, -1.0, 0.0f, 1.0f, 0.0f);
+    //glLoadIdentity();
+    //gluLookAt(
+    //    x, y, z,
+    //    x + lx, y + ly, z + lz,
+    //    0.0f, 1.0f, 0.0f
+    //);
+    //printf("%lf\t%lf\t%lf\t%lf\t%lf\t%lf\n", x, y, z, lx, ly, lz);
+    Lock();
 }
+
+//================================================================
+
+void KeySpecialDown4(int key, int x, int y) {
+    switch (key)
+    {
+    case GLUT_KEY_LEFT:
+        angle -= 0.01f;
+        orientMe(angle);
+        break;
+    case GLUT_KEY_RIGHT:
+        angle += 0.01f;
+        orientMe(angle);
+        break;
+    case GLUT_KEY_UP:
+        moveMeFlat(1);
+        break;
+    case GLUT_KEY_DOWN:
+        moveMeFlat(-1);
+        break;
+    }
+}
+
+void initScene4()
+{
+    glEnable(GL_DEPTH_TEST);
+    //snowman_display_list = createDL(); // initmain 으로 이동
+    angle = 0.0;
+    x = 0.0f, y = 1.75f, z = 5.0f;
+    lx = 0.0f, ly = 0.0f, lz = -1.0f;
+    
+    //lx = sin(ang);
+    //lz = -cos(ang);
+    //x = x + direction * (lx) * 0.1;
+    //z = z + direction * (lz) * 0.1;
+    //glLoadIdentity();
+    //gluLookAt(x, y, z,
+    //    x + lx, y + ly, z + lz,
+    //    0.0f, 1.0f, 0.0f);
+    //printf("%lf\t%lf\t%lf\t%lf\t%lf\t%lf\n", x, y, z, lx, ly, lz);
+    Lock();
+}
+
+void renderScene4(void)
+{
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // 지형을 그립니다.
+    glColor3f(0.9f, 0.9f, 0.9f);
+    glBegin(GL_QUADS);
+    glVertex3f(-100.0f, 0.0f, -100.0f);
+    glVertex3f(-100.0f, 0.0f, 100.0f);
+    glVertex3f(100.0f, 0.0f, 100.0f);
+    glVertex3f(100.0f, 0.0f, -100.0f);
+    glEnd();
+
+    // 36개의 눈사람을 그립니다.
+    for (int i = -3; i < 3; i++)
+        for (int j = -3; j < 3; j++)
+        {
+            glPushMatrix();
+            glTranslatef(i * 10.0, 0, j * 10.0);
+            glCallList(snowman_display_list);;
+            glPopMatrix();
+        }
+    glutSwapBuffers();
+}
+
+void drawSnowMan()
+{
+    glColor3f(1.0f, 1.0f, 1.0f);
+
+    // 몸을 그립니다.
+    glTranslatef(0.0f, 0.75f, 0.0f);
+    glutSolidSphere(0.75f, 20, 20);
+
+    // 머리를 그립니다.
+    glTranslatef(0.0f, 1.0f, 0.0f);
+    glutSolidSphere(0.25f, 20, 20);
+
+    // 두 눈을 그립니다.
+    glPushMatrix();
+    glColor3f(0.0f, 0.0f, 0.0f);
+    glTranslatef(0.05f, 0.10f, 0.18f);
+    glutSolidSphere(0.05f, 10, 10);
+    glTranslatef(-0.1f, 0.0f, 0.0f);
+    glutSolidSphere(0.05f, 10, 10);
+    glPopMatrix();
+
+    // 코를 그립니다.
+    glColor3f(1.0f, 0.5f, 0.5f);
+    glRotatef(0.0f, 1.0f, 0.0f, 0.0f);
+    glutSolidCone(0.08f, 0.5f, 10, 2);
+}
+
+GLuint createDL()
+{
+    GLuint snowManDL;
+
+    // 디스플레이리스트를 생성하고 id 를 반환합니다.
+    snowManDL = glGenLists(1);
+
+    // 디스플레이리스트를 시작합니다.
+    glNewList(snowManDL, GL_COMPILE);
+
+    // 렌더링을 수행하는 함수를 호출합니다.
+    drawSnowMan();
+
+    // 디스플레이리스트를 끝마칩니다.
+    glEndList();
+
+    return(snowManDL);
+}
+
+void orientMe(float ang)
+{
+    lx = sin(ang);
+    lz = -cos(ang);
+    //glLoadIdentity();
+    //gluLookAt(x, y, z,
+    //    x + lx, y + ly, z + lz,
+    //    0.0f, 1.0f, 0.0f);
+    //printf("%lf\t%lf\t%lf\t%lf\t%lf\t%lf\n", x, y, z, lx, ly, lz);
+    Lock();
+}
+
+void moveMeFlat(int direction)
+{
+    x = x + direction * (lx) * 0.1;
+    z = z + direction * (lz) * 0.1;
+    Lock();
+}
+
+
+
+//================================================================
+//================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
