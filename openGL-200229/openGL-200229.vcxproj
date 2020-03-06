@@ -152,11 +152,8 @@
     <ClCompile Include="CScene.cpp" />
     <ClCompile Include="CScene3.cpp" />
     <ClCompile Include="CScene4.cpp" />
+    <ClCompile Include="Cscene5.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="main_bak.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Library Include="GLUT\lib\glut.lib" />

@@ -9,6 +9,7 @@
 #include "CScene.cpp"
 #include "CScene3.cpp"
 #include "CScene4.cpp"
+#include "CScene5.cpp"
 #include <iostream>
 using namespace std;
 
@@ -19,11 +20,11 @@ using namespace std;
 //typedef void (*doDisplay)(); // = NULL;
 //typedef void (*doIdle)(); // = NULL;
 
-CScene* sf1, * sf2, * sf3;
+CScene* sf1, * sf2, * sf3, * sf4, * sf5;
 void (CScene::* sm)(void);
 CScene* sf;
 
-static int s_mod = '3'; // 장면 모드 기본값
+static int s_mod = '5'; // 장면 모드 기본값
 
 enum Menu : int
 {
@@ -76,8 +77,8 @@ int main(int argc, char** argv)
     //    GLUT_ACCUM - 어큐뮬레이션 버퍼(The accumulation buffer)
     //    GLUT_STENCIL - 스텐실 버퍼(The stencil buffer)
     //    GLUT_DEPTH - 깊이 버퍼(The depth buffer)
-
-    glutCreateWindow("OpenGL");         // 윈도우 만들기.
+    winId = glutCreateWindow("OpenGL");
+    //glutCreateWindow("OpenGL");         // 윈도우 만들기.
     glutInitWindowPosition(100, 100);   // 화면 초기 위치
     glutInitWindowSize(w_w, w_h);       // 화면 크기
 
@@ -134,6 +135,8 @@ void initMain() {
     cout << *(&sf) << endl; // 005EB140
     sf2 = new CScene2(sf);
     sf3 = new CScene3(sf);
+    sf4 = new CScene4(sf);
+    sf5 = new CScene5(sf);
        
     setScene();
 }
@@ -150,6 +153,12 @@ void setScene()
         break;
     case '3':
         sf = sf3;
+        break;
+    case '4':
+        sf = sf4;
+        break;
+    case '5':
+        sf = sf5;
         break;
     }
 
@@ -180,10 +189,15 @@ void KeyDown(unsigned char key, int x, int y) // q, a를 눌렀을 때 알파값 변경
     case 'd':
         glClear(GL_COLOR_BUFFER_BIT);
         break;
+    case 27:
+        glutDestroyWindow(winId);                // ESC키 프로그램 종료
+        exit(0);
+
+        break;
     default:
         printf("default ");
-        sf->KeyDown(key,x,y);
     }
+    sf->KeyDown(key,x,y);
     glutPostRedisplay(); // 화면 재생성
 }
 

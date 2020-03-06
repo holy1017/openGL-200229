@@ -17,7 +17,7 @@ static GLdouble lx = 0.0f, ly = 0.0f, lz = -1.0f;
 
 static float debug_f = 72.0;
 static int k_mod, s_menu = 0;
-
+static int winId;
 
 //==============================================================
 
@@ -45,13 +45,16 @@ public:
 	}
 
 	virtual void doDisplay() {
+        printf("doDisplay CScene \n");
 	};
 	virtual void doIdle() {
+        printf("doIdle CScene \n");
 	};
 	virtual void KeyDown(unsigned char key, int x, int y)
 	{
 		k_mod = glutGetModifiers();
 		printf("CScene KeyDown : %c , %d : %d , %d \n", key, k_mod, x, y);
+
 	};
 	virtual void KeyUp(unsigned char key, int x, int y)
 	{
@@ -119,6 +122,7 @@ public:
     }
     virtual void doMenu(int value)
     {
+        printf("doMenu CScene : %d \n", value);
         //glutPostRedisplay(); // 화면 재생성
     }
 };
