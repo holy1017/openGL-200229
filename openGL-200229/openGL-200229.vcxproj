@@ -149,8 +149,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CScene.cpp" />
+    <ClCompile Include="CScene3.cpp" />
+    <ClCompile Include="CScene4.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="memo.cpp">
+    <ClCompile Include="main_bak.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
@@ -164,7 +167,10 @@
     <None Include="GLUT\dll\glut32.dll" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CScene.h" />
+    <ClInclude Include="CScene3.h" />
     <ClInclude Include="GLUT\GL\glut.h" />
+    <ClInclude Include="main.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
